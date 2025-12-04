@@ -1,0 +1,94 @@
+# 自治体設定テンプレート
+# このファイルをコピーして your_city.yaml を作成してください
+
+municipality:
+  name: "あなたの市"
+  prefecture: "都道府県"
+  character: "マスコットキャラクター名"
+  
+sources:
+  # 自治体公式HP
+  municipal_hp:
+    enabled: true
+    scraper: "your_city"  # sources/municipal/your_city.py を使用
+    url: "https://www.city.example.jp/"
+    selectors:
+      list_item_container: ".news-list .item"
+      date: ".date"
+      link: "a"
+      title: "h1.title"
+      content_body: ".content"
+    
+  # Twitter/X
+  twitter:
+    enabled: false
+    username: "your_city_official"
+    
+  # YouTube
+  youtube:
+    enabled: false
+    channel_id: "UC..."
+    
+  # Instagram
+  instagram:
+    enabled: false
+    username: "your_city_official"
+    
+  # 学校HP
+  schools:
+    enabled: false
+    list: []
+
+transform:
+  # 簡潔テキスト
+  text_simple:
+    enabled: true
+    max_chars: 150
+    
+  # 1枚絵
+  image_single:
+    enabled: true
+    size: [1080, 1080]
+    template: "default"
+    
+  # ショート動画
+  video_short:
+    enabled: true
+    duration_max: 60
+    aspect_ratio: "9:16"
+    
+  # 長尺動画
+  video_long:
+    enabled: true
+    scene_min: 3
+    scene_max: 8
+    
+  # 音声
+  audio:
+    enabled: false
+
+delivery:
+  # YouTube
+  youtube_shorts:
+    enabled: false
+    privacy: "public"
+    
+  youtube_regular:
+    enabled: false
+    privacy: "public"
+    
+  # LINE
+  line:
+    enabled: false
+    
+  # Twitter/X
+  twitter:
+    enabled: false
+    
+  # Instagram
+  instagram:
+    enabled: false
+    
+  # Email
+  email:
+    enabled: false

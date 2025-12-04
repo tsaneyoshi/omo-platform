@@ -1,0 +1,105 @@
+# 守谷市設定ファイル
+
+municipality:
+  name: "守谷市"
+  prefecture: "茨城県"
+  character: "こじゅまる"
+  
+sources:
+  # 自治体公式HP
+  municipal_hp:
+    enabled: true
+    scraper: "moriya"
+    url: "https://www.city.moriya.ibaraki.jp/"
+    base_url: "https://www.city.moriya.ibaraki.jp"
+    list_url: "https://www.city.moriya.ibaraki.jp/kurashi/oshirase/index.html"
+    selectors:
+      list_item_container: "div.list_item"
+      date: "span.date"
+      link: "a"
+      title: "h1.page_title"
+      content_body: "div.main_content"
+    
+  # Twitter/X
+  twitter:
+    enabled: false  # Phase 2で有効化
+    username: "moriya_city"
+    
+  # YouTube
+  youtube:
+    enabled: false  # Phase 2で有効化
+    channel_id: "UC..."  # 実際のチャンネルIDに置き換え
+    
+  # Instagram
+  instagram:
+    enabled: false
+    username: "moriya_city"
+    
+  # 学校HP
+  schools:
+    enabled: false  # Phase 3で有効化
+    list:
+      - name: "守谷小学校"
+        url: "https://..."
+        type: "wordpress"
+      - name: "守谷中学校"
+        url: "https://..."
+        type: "custom"
+      # ... 残り11校
+
+transform:
+  # 簡潔テキスト
+  text_simple:
+    enabled: true
+    max_chars: 150
+    
+  # 1枚絵
+  image_single:
+    enabled: true
+    size: [1080, 1080]
+    template: "moriya"
+    
+  # ショート動画
+  video_short:
+    enabled: true
+    duration_max: 60
+    aspect_ratio: "9:16"
+    scene_count: 3
+    
+  # 長尺動画
+  video_long:
+    enabled: true
+    scene_min: 3
+    scene_max: 8
+    
+  # 音声
+  audio:
+    enabled: false
+
+delivery:
+  # YouTube
+  youtube_shorts:
+    enabled: false  # Phase 7で有効化
+    privacy: "public"
+    channel_id: "UC..."
+    
+  youtube_regular:
+    enabled: false
+    privacy: "public"
+    channel_id: "UC..."
+    
+  # LINE
+  line:
+    enabled: false  # Phase 8で有効化
+    
+  # Twitter/X
+  twitter:
+    enabled: false
+    
+  # Instagram
+  instagram:
+    enabled: false
+    
+  # Email
+  email:
+    enabled: false
