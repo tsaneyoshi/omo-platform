@@ -152,30 +152,6 @@ export MUNICIPALITY=your_city
 
 ---
 
-## 📚 ドキュメント
-
-- [セットアップガイド](docs/setup.md)
-- [設定ガイド](docs/configuration.md)
-- [デプロイガイド](docs/deployment.md)
-- [カスタマイズガイド](docs/customization.md)
-- [API リファレンス](docs/api.md)
-
----
-
-## 🤝 コントリビューション
-
-このプロジェクトはオープンソースです。バグ報告、機能提案、プルリクエストを歓迎します!
-
-### 開発に参加する
-
-1. このリポジトリをフォーク
-2. フィーチャーブランチを作成 (`git checkout -b feature/amazing-feature`)
-3. 変更をコミット (`git commit -m 'Add amazing feature'`)
-4. ブランチにプッシュ (`git push origin feature/amazing-feature`)
-5. プルリクエストを作成
-
----
-
 ## 📄 ライセンス
 
 MIT License - 詳細は [LICENSE](LICENSE) を参照してください。
