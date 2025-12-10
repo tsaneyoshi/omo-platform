@@ -84,3 +84,4 @@ dist/
 !assets/**
 output/
 generated/
+backups/

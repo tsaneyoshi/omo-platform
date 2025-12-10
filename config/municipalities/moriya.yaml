@@ -1,105 +1,321 @@
-# 守谷市設定ファイル
+# OMO Platform - 守谷市設定ファイル (Phase 5: 動画生成対応)
 
+# 自治体情報
 municipality:
+  id: "moriya"
   name: "守谷市"
   prefecture: "茨城県"
-  character: "こじゅまる"
-  
-sources:
-  # 自治体公式HP
-  municipal_hp:
-    enabled: true
-    scraper: "moriya"
-    url: "https://www.city.moriya.ibaraki.jp/"
-    base_url: "https://www.city.moriya.ibaraki.jp"
-    list_url: "https://www.city.moriya.ibaraki.jp/kurashi/oshirase/index.html"
-    selectors:
-      list_item_container: "div.list_item"
-      date: "span.date"
-      link: "a"
-      title: "h1.page_title"
-      content_body: "div.main_content"
-    
-  # Twitter/X
-  twitter:
-    enabled: false  # Phase 2で有効化
-    username: "moriya_city"
-    
-  # YouTube
-  youtube:
-    enabled: false  # Phase 2で有効化
-    channel_id: "UC..."  # 実際のチャンネルIDに置き換え
-    
-  # Instagram
-  instagram:
-    enabled: false
-    username: "moriya_city"
-    
-  # 学校HP
-  schools:
-    enabled: false  # Phase 3で有効化
-    list:
-      - name: "守谷小学校"
-        url: "https://..."
-        type: "wordpress"
-      - name: "守谷中学校"
-        url: "https://..."
-        type: "custom"
-      # ... 残り11校
+  website: "https://www.city.moriya.ibaraki.jp"
 
-transform:
-  # 簡潔テキスト
-  text_simple:
+# Firestore設定
+firestore:
+  collection_name: "omo"
+
+# 情報源設定
+sources:
+  # 自治体公式サイト
+  municipal_website:
     enabled: true
+    list_url: "https://www.city.moriya.ibaraki.jp/newslist.html"
+    base_url: "https://www.city.moriya.ibaraki.jp/"
+    selectors:
+      list_item_container: "ul.newslist li.box"
+      date: "span.date"
+      link: "span.newsli a"
+      title: "#content h1"
+      content_body: "div#voice"
+    max_items: 10
+
+# 変換設定
+transform:
+  # 1. テキスト要約
+  text_simple:
+    enabled: false
     max_chars: 150
-    
-  # 1枚絵
+    max_output_tokens: 8192
+    prompts:
+      simple_text: |
+        以下の文書を、市民にとって読みやすく親しみやすい表現で、簡潔に要約してください。
+
+        # 要件
+        - {max_chars}文字以内
+        - 専門用語や硬い表現は避け、平易な言葉にリライトしてください。
+        - 重要な情報（日時、場所、対象、期限など）は漏らさず含めてください。
+        - 文体は「です・ます」調で、柔らかいトーンにしてください。
+        - **Markdown記法（#見出し、**太字**など）や絵文字は使用しないでください。**
+
+        # 記事タイトル
+        {title}
+
+        # 記事本文
+        {body_text}
+
+        # 出力形式
+        要約したテキストのみを出力してください。
+
+    filters:
+      mode: "blacklist"
+      blacklist:
+        title: ["献血", "入札", "審議会"]
+
+  # 2. わかりやすいテキスト
+  text_easy:
+    enabled: false
+    max_output_tokens: 8192
+    prompts:
+      easy_text: |
+        以下の文書を、内容はそのままに、市民にとって読みやすく親しみやすい表現にリライト（書き換え）してください。
+
+        # 記事タイトル
+        {title}
+
+        # 元の本文
+        {body_text}
+
+        # 指示
+        - **元の文章の構成や情報量は可能な限り維持してください。** 勝手に要約したり情報を削ったりしないでください。
+        - 専門用語や硬い行政用語は、同じ意味の平易な言葉に置き換えてください。
+        - 文末は「です・ます」調で、柔らかく親しみやすいトーンに統一してください。
+        - 漢字が多い場合は、適度にひらがなを開いたり、分かりやすい表現に変えてください。
+        - **Markdown記法（#見出し、**太字**など）や絵文字は使用しないでください。**
+        - 改行を適度に入れ、読みやすくしてください。
+
+        # 出力形式
+        リライトしたテキストのみを出力してください。説明や前置きは不要です。
+    filters:
+      mode: "blacklist"
+      blacklist:
+        title: ["献血", "入札", "審議会", "市長交際費"]
+
+  # 3. 1枚絵生成
   image_single:
     enabled: true
-    size: [1080, 1080]
-    template: "moriya"
-    
-  # ショート動画
+    image_size: "1K"
+    image_model: "gemini-3-pro-image-preview"
+    summary_model_name: "gemini-2.5-flash"
+    aspect_ratios:
+      - "1:1"
+      #- "16:9"
+    style: "アニメ・マンガ風の高品質2Dイラスト。クリーンな線画、ソフトな陰影、鮮やかな色彩。"
+    reference_images_dir: "assets/images"
+    prompts:
+      summary: |
+        以下の記事から、スライド画像（インフォグラフィック）に掲載するための要約テキストを作成してください。
+
+        # 記事タイトル
+        {title}
+
+        # 記事本文
+        {body_text}
+
+        # 指示
+        - 記事の要点を**4〜5個の項目**に整理してください。
+        - 各項目は以下の形式で出力してください（見出しの下に箇条書き）。
+
+          【見出し】
+          ・内容のテキスト（体言止めで簡潔に）
+
+        - 見出しの例: 【イベント概要】【募集対象】【募集期間】【参加メリット】【開催期間】【応募方法】など。
+        - 内容は1項目につき1〜2行程度で、重要なキーワード（固有名詞、数字、特典内容など）は省略せずに含めてください。
+        - 出力はテキストのみでお願いします。
+
+      image_generation: |
+        以下の記事の内容を伝える、インフォグラフィック風のアイキャッチ画像を生成してください。
+
+        # 記事タイトル
+        {title}
+
+        # 掲載する情報
+        {summary}
+
+        # デザイン指示
+        1. **全体レイアウト**:
+           - 上部ヘッダー: タイトル「{title}」を大きく配置。背景は明るい水色やパステルカラーの幾何学模様。
+           - メインエリア: 白い背景または半透明のボックスを配置し、その中に情報をリスト形式で配置。
+
+        2. **リストのデザイン（重要）**:
+           - 各項目の**左側に、内容を表すアイコン**を配置してください。
+           - アイコンの右側に「【見出し】」を配置し、**その下に「・箇条書きの文章」を配置**してください。
+           - 見出しと本文でフォントサイズや色を変え、階層構造を明確にしてください。
+
+        3. **テキスト装飾**:
+           - **見出し**: 太字のゴシック体を使用し、目立たせてください。
+           - **本文**: 見出しより少し小さいサイズで、読みやすく配置してください。
+           - **キーワード強調**: 文中の重要な情報は、**オレンジ色**や**濃い水色**などのアクセントカラーで色を変えて強調してください。
+
+        4. **配色と雰囲気**:
+           - **背景デザイン**: 明るい水色を基調とした、ソフトなグラデーションのある背景。
+           - 全体的に清潔感のある「白・水色・青」をベースにしてください。
+           - 市民に親しみやすく、かつ情報が整理されて見やすいプロフェッショナルなデザイン。
+           - {style}
+
+        {ref_instruction}
+    filters:
+      mode: "blacklist"
+      blacklist:
+        title: ["献血", "入札", "審議会", "市長交際費"]
+
+  # 4. 台本生成 (Phase 5.5)
+  text_script:
+    enabled: true
+    municipality_name: "守谷市"
+    character_name: "こじゅろう"
+    scene_min: 3
+    scene_max: 10
+    telop_max_chars: 60
+    model_name: "gemini-2.5-flash"
+    max_output_tokens: 16384
+    prompts:
+      scene_count: |
+        あなたはプロの構成作家です。
+        以下の記事の要点を分析し、ショート動画で最も効果的に伝えるための最適なシーン数を提案してください。
+
+        # 記事の要点
+        {input_text}
+
+        # 指示
+        - 回答は **半角整数のみ**。他の文字・空白・句読点は一切含めないこと。
+        - 許容範囲は {scene_min}〜{scene_max}。
+
+        # 回答:
+
+      script: |
+        あなたはプロの放送作家です。
+        以下の記事を元に、ショート動画（TikTok/Reels/Shorts用）の台本を作成してください。
+
+        # 記事タイトル
+        {title}
+
+        # 記事本文
+        {body_text}
+
+        # 制約事項
+        - 自治体名: {municipality_name}
+        - ターゲット: 若い世代〜子育て世代
+        - 語り口: 親しみやすく、情報をわかりやすく伝える口調（「〜です」「〜ます」調）。
+        - 構成:
+          1. 導入: 挨拶や自己紹介は一切せず、冒頭から本題（イベント名や募集内容）に入る。
+          2. 詳細: 開催日・曜日・時間・会場を「数字・記号」を用いて正確に伝える。
+          3. 結び: 行動喚起（詳細はWebで、など）
+        - シーン数: {scene_count}シーン（厳守）
+        - 出力する beats 配列は、必ず **{scene_count} 要素きっちり** で作成してください。
+
+        # 画像生成指示 (visual_prompt) のルール
+        - スタイル: 温かみのある手描き風の絵本イラスト(例: 『ぐりとぐら』のような、シンプルで素朴なタッチ)。水彩画や色鉛筆画のような質感。
+        - キャラクター: 全てのシーンに「{character_name}」を登場させること。
+        - **【重要】テキスト禁止**: 
+          * 画像内に文字、テキスト、数字、記号を一切描かないこと
+          * すべての文字情報はテロップで表示するため、画像は純粋なイラストのみにすること
+        - 表現: 状況や感情をキャラクターの表情と動作、背景のみで表現する。
+
+        # 出力フォーマット (JSON)
+        {{
+          "title": "動画タイトル",
+          "beats": [
+            {{
+              "scene": 1,
+              "narration": "お店を盛り上げるビッグチャンス！「守谷市プレミアム付商品券」の取扱店を募集します。",
+              "visual_prompt": "A warm, hand-drawn picture book style illustration. Kojumaru (a cute small animal mascot) is waving happily in a forest-like park. Soft watercolor texture. Simple background."
+            }},
+            ...
+          ]
+        }}
+
+      telop: |
+        以下の動画台本の各シーンに合わせて、画面に表示するテロップ（字幕）を作成してください。
+
+        # 台本データ
+        {script_json}
+
+        # 制約事項
+        - 1シーンにつき1つのテロップ
+        - 情報量を最大化: 文字数制限{telop_max_chars}文字内で、できるだけ多くの情報を盛り込む
+        - 不要な語尾を削除: 「〜です」「〜ます」「〜しましょう」などの語尾は省略し、体言止めや簡潔な表現にする
+        - 重要情報を優先: 日時、場所、対象、費用などの具体的な情報を優先的に含める
+        - 絵文字の使用は禁止（正しく表示されないため）
+
+        # 出力フォーマット (JSON配列)
+        [
+          {{
+            "scene": 1,
+            "telop_text": "テロップテキスト"
+          }},
+          ...
+        ]
+    filters:
+      mode: "both"
+      whitelist:
+        title: ["イベント", "募集"]
+      blacklist:
+        title: ["献血", "入札", "審議会", "市長交際費", "会議"]
+
+  # 5. 動画生成 (Phase 5)
   video_short:
     enabled: true
-    duration_max: 60
-    aspect_ratio: "9:16"
-    scene_count: 3
-    
-  # 長尺動画
-  video_long:
-    enabled: true
-    scene_min: 3
-    scene_max: 8
-    
-  # 音声
-  audio:
-    enabled: false
+    reference_images_dir: "assets/video"
+    image_size: "1K"
+    aspect_ratios:
+      - "1:1"       # スクエア (Instagram/Facebook)
+      # - "9:16"    # 縦型 (TikTok/YouTube Shorts)
+      # - "16:9"    # 横型 (YouTube)
 
-delivery:
-  # YouTube
-  youtube_shorts:
-    enabled: false  # Phase 7で有効化
-    privacy: "public"
-    channel_id: "UC..."
-    
-  youtube_regular:
-    enabled: false
-    privacy: "public"
-    channel_id: "UC..."
-    
-  # LINE
-  line:
-    enabled: false  # Phase 8で有効化
-    
-  # Twitter/X
-  twitter:
-    enabled: false
-    
-  # Instagram
-  instagram:
-    enabled: false
-    
-  # Email
-  email:
-    enabled: false
+    # 動画の解像度設定（アスペクト比ごと）
+    resolution:
+      "1:1": [1080, 1080]
+      "9:16": [1080, 1920]
+      "16:9": [1920, 1080]
+
+    fps: 30
+    duration_max: 60  # 秒
+    tail_sec: 0.3  # 各シーンの末尾とBGM合成時の余韻(秒)
+    image_model: "gemini-3-pro-image-preview"
+    generate_images: true
+
+    # TTS設定
+    tts:
+      model: "gemini-2.5-flash-preview-tts"
+      voice: "Autonoe"
+      style: "日本語で読み上げてください。"
+      pronunciation_dict:
+        "守谷": "もりや"
+        "北守谷": "きたもりや"
+        "高野": "こうや"
+        "黒内": "くろうち"
+        "常総": "じょうそう"
+        "取手": "とりで"
+        "御所ケ丘": "ごしょがおか"
+        "百合ケ丘": "ゆりがおか"
+        "郷州": "ごうしゅう"
+        "赤法花": "あかぼっけ"
+        "谷和原": "やわら"
+        "筑波山": "つくばさん"
+
+    # テロップ設定
+    telop:
+      enabled: true
+      font_path: "assets/fonts/Noto_Sans_JP/NotoSansJP-Bold.otf"
+      font_size: 55
+      font_color: "#ffffff"
+      box_color: "#000000"
+      box_opacity: 0.6
+      position: "top"
+      align: "left"  # テキスト配置: "left", "center", "right"
+      margin_top: 80
+      margin_bottom: 220
+      line_spacing: 10
+      padding: 10
+      max_width_ratio: 0.94
+
+    # BGM設定
+    bgm:
+      enabled: true
+      file_path: "assets/audio/video/bgm.mp3"
+      volume: 0.1
+
+    # フィルタリング (厳格)
+    filters:
+      mode: "both"
+      whitelist:
+        title: ["イベント", "募集"]
+      blacklist:
+        title: ["献血", "入札", "審議会", "市長交際費", "会議"]
