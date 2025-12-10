@@ -12,9 +12,8 @@
 
 ### 特徴
 
-- 🌐 **マルチソース**: 自治体HP、SNS、学校HPなど複数の情報源に対応
-- 🔄 **マルチフォーマット**: テキスト、画像、動画、音声に自動変換
-- 📱 **マルチチャネル**: YouTube、LINE、Twitter、Instagramなど複数のSNSに配信
+- 🌐 **マルチソース**: 自治体HPなど複数の情報源に対応
+- 🔄 **マルチフォーマット**: テキスト、画像、動画に自動変換
 - 🔓 **オープンソース**: 他の自治体でも利用可能な設計
 
 ---
@@ -29,22 +28,11 @@ scrape  transform delivery
 
 ### 情報源 (Scrape)
 - 自治体公式HP
-- 公式SNS (Twitter/X, YouTube, Instagram)
-- 学校HP (オプション)
 
 ### 変換 (Transform)
 - **簡潔テキスト**: 3行でわかる要約
 - **1枚絵**: 視覚的に伝わる画像
 - **ショート動画**: 15-60秒 (YouTube Shorts, Instagram Reels向け)
-- **長尺動画**: 詳細な解説動画
-- **音声**: ながらで聞けるポッドキャスト形式
-
-### 配信 (Delivery)
-- YouTube (Shorts / 通常動画)
-- LINE (メッセージ / 画像)
-- Twitter/X (テキスト / 画像)
-- Instagram (投稿 / リール)
-- Email
 
 ---
 
@@ -191,21 +179,6 @@ export MUNICIPALITY=your_city
 ## 📄 ライセンス
 
 MIT License - 詳細は [LICENSE](LICENSE) を参照してください。
-
----
-
-## 🙏 謝辞
-
-このプロジェクトは、守谷市での実証実験から生まれました。
-
-**プロジェクトオーナー**: 実好敏正
-
----
-
-## 📞 お問い合わせ
-
-- GitHub Issues: [https://github.com/YOUR_USERNAME/omo-platform/issues](https://github.com/YOUR_USERNAME/omo-platform/issues)
-- Email: your-email@example.com
 
 ---
 
