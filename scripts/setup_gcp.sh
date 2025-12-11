@@ -186,11 +186,12 @@ if [[ "$SETUP_SCHEDULER" =~ ^[Yy]$ ]]; then
   
   # スケジュールを入力
   echo "スケジュール例:"
+  echo "  毎時0分: 0 * * * *"
   echo "  毎日9:00: 0 9 * * *"
   echo "  平日9:00: 0 9 * * 1-5"
   echo "  6時間ごと: 0 */6 * * *"
-  read -p "スケジュール (cron形式) [0 9 * * *]: " SCHEDULE
-  SCHEDULE=${SCHEDULE:-"0 9 * * *"}
+  read -p "スケジュール (cron形式) [0 * * * *]: " SCHEDULE
+  SCHEDULE=${SCHEDULE:-"0 * * * *"}
   
   # Cloud Schedulerジョブを作成
   SCHEDULER_NAME="omo-${MUNICIPALITY}-daily"
