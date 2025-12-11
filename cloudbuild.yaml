@@ -1,0 +1,73 @@
+steps:
+  # 1. 依存関係のインストール
+  - name: 'python:3.11'
+    entrypoint: pip
+    args: ['install', '-r', 'backend/requirements.txt', '--user']
+    id: 'install-dependencies'
+
+  # 2. Firestoreへのデプロイ準備
+  - name: 'gcr.io/cloud-builders/gcloud'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        echo "Firestore configuration check"
+        gcloud firestore databases describe --database=(default) || echo "Firestore not initialized"
+    id: 'check-firestore'
+
+  # 3. 環境変数の設定（Secret Managerから取得）
+  - name: 'gcr.io/cloud-builders/gcloud'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        echo "Setting up environment variables"
+        # Secret ManagerからGoogle API Keyを取得
+        gcloud secrets versions access latest --secret="google-api-key" > /workspace/.env.google_api_key
+    id: 'setup-secrets'
+
+  # 4. スクレイプ実行（オプション）
+  - name: 'python:3.11'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        export GOOGLE_API_KEY=$(cat /workspace/.env.google_api_key)
+        export GEMINI_MODEL_NAME=gemini-2.5-flash
+        export MUNICIPALITY=moriya
+        export FIRESTORE_PROJECT_ID=$PROJECT_ID
+        export PYTHONPATH=/workspace
+        python backend/scrape/main.py
+    id: 'run-scrape'
+    waitFor: ['install-dependencies', 'setup-secrets']
+
+  # 5. 変換実行
+  - name: 'python:3.11'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        export GOOGLE_API_KEY=$(cat /workspace/.env.google_api_key)
+        export GEMINI_MODEL_NAME=gemini-2.5-flash
+        export MUNICIPALITY=moriya
+        export FIRESTORE_PROJECT_ID=$PROJECT_ID
+        export PYTHONPATH=/workspace
+        export BATCH_LIMIT=5
+        python backend/transform/main.py
+    id: 'run-transform'
+    waitFor: ['run-scrape']
+
+# タイムアウト設定
+timeout: 3600s
+
+# オプション
+options:
+  logging: CLOUD_LOGGING_ONLY
+  machineType: 'N1_HIGHCPU_8'
+
+# カスタムサービスアカウントを使用
+serviceAccount: 'projects/${PROJECT_ID}/serviceAccounts/omo-platform-sa@${PROJECT_ID}.iam.gserviceaccount.com'
+
+# 置換変数
+substitutions:
+  _MUNICIPALITY: 'moriya'

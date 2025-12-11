@@ -1,0 +1,49 @@
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+*.egg
+*.egg-info
+dist
+build
+venv
+env
+ENV
+
+# IDEs
+.vscode
+.idea
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+firebase-debug.log
+firestore-debug.log
+
+# 開発用
+storage/
+backups/
+tmp/
+temp/
+
+# ドキュメント
+docs/
+README.md
+LICENSE
+
+# スクリプト
+scripts/
+.env
+.env.local
